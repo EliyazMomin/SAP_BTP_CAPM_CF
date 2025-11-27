@@ -1,4 +1,4 @@
-itemid,orderid_orderid,productName,quantity,UnitPrice,TotalPrice
+ID,orderid_ID,productName,quantity,UnitPrice,TotalPrice
 "001","01","Laptop","5","25000","125000"
 "002","02","Monitor","4","8000","32000"
 "003","03","CPU","6","15000","90000"

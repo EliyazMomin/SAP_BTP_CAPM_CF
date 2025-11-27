@@ -3,7 +3,7 @@ namespace orders;
 //using { cuid, managed } from '@sap/cds/common';
 
 entity Orders {
-    key orderid : UUID;
+    key ID : UUID;
     customerID: String;
     orederdate: DateTime;
     TotalAmount: Decimal(10, 2); 
@@ -12,7 +12,7 @@ entity Orders {
 }
 
 entity OrderItems {
-    key itemid : UUID;
+    key ID : UUID;
     orderid: Association to Orders;
     productName: localized String;
     quantity: Integer;
