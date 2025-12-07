@@ -1,2 +1,15 @@
 
 GET http://localhost:35675/odata/v4/order/Orders
+
+
+## To add data through JSON via POST method like this below,
+
+##POST  http://localhost:35675/odata/v4/order/Orders 
+##Content-Type: application/json
+
+##{
+##    "ID" : "",
+##    "customerID" :  "0025",
+##    "orederdate" : "2025-11-25T15:00",
+##    "TotalAmount" : 1200
+##}
