@@ -1,4 +1,4 @@
-using { API_BUSINESS_PARTNER as s4} from './external/API_BUSINESS_PARTNER';
+using { API_BUSINESS_PARTNER as s4} from './external/API_BUSINESS_PARTNER.csn';
 
 service BusinessServiceenti {
 

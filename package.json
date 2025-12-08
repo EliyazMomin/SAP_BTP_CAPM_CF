@@ -10,6 +10,7 @@
     "@sap-cloud-sdk/resilience": "^4",
     "@sap-cloud-sdk/util": "^4.2.0",
     "@sap/cds": "^9",
+    "@sap/low-code-event-handler": "^1.2.5",
     "@sap/xssec": "^4",
     "and": "^0.0.3",
     "express": "^4"
@@ -30,10 +31,9 @@
       "messaging": {
         "kind": "enterprise-messaging"
       },
-       "app-service": {
+      "app-service": {
         "impl": "@sap/low-code-event-handler"
       },
-     
       "destinations": true,
       "html5-repo": true,
       "application-logging": true,
@@ -41,7 +41,10 @@
         "kind": "odata-v2",
         "model": "srv/external/API_BUSINESS_PARTNER",
         "credentials": {
-          "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_BUSINESS_PARTNER"
+          "url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu/odata/sap/API_BUSINESS_PARTNER",
+          "headers": {
+            "APIkey": "uG4bAActLQEoE8u0X23WLuazsNvOEJfA"
+          }
         }
       }
     }
