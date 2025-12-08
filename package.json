@@ -31,9 +31,9 @@
       "messaging": {
         "kind": "enterprise-messaging"
       },
-      "app-service": {
-        "impl": "@sap/low-code-event-handler"
-      },
+      "low-code-event-handler": {
+      "impl": "@sap/low-code-event-handler"
+        },
       "destinations": true,
       "html5-repo": true,
       "application-logging": true,
