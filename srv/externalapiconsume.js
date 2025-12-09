@@ -7,3 +7,12 @@ module.exports = cds.service.impl(async function() {
         return bp.run(req.query)
     })
 })
+
+module.exports = async function (srv) {
+    const remoteservice = await cds.connect.to('API_BUSINESS_PARTNER');
+    srv.on('READ', 'Suppliers', async req => {
+        return remoteservice.run(req.query);
+    })
+
+    
+};
