@@ -13,6 +13,4 @@ module.exports = async function (srv) {
     srv.on('READ', 'Suppliers', async req => {
         return remoteservice.run(req.query);
     })
-
-    
 };
