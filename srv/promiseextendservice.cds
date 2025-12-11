@@ -10,4 +10,6 @@ service ExtendService{
          'Order-Status' as Status
 
     }
+
+    action getOrders() returns array of Orders;
 }
