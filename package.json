@@ -32,8 +32,8 @@
         "kind": "enterprise-messaging"
       },
       "low-code-event-handler": {
-      "impl": "@sap/low-code-event-handler"
-        },
+        "impl": "@sap/low-code-event-handler"
+      },
       "destinations": true,
       "html5-repo": true,
       "application-logging": true,
@@ -46,6 +46,17 @@
             "APIkey": "uG4bAActLQEoE8u0X23WLuazsNvOEJfA"
           }
         }
+      },
+      "BusinessPartnerA2X": {
+        "kind": "odata-v2",
+        "model": "srv/external/BusinessPartnerA2X",
+        "[production]": {
+          "credentials": {
+            "path": "s4hanacloud/sap/opu/odata/sap/API_BUSINESS_PARTNER"
+          }
+        },
+        "csrf": true,
+        "csrfInBatch": true
       }
     }
   }
