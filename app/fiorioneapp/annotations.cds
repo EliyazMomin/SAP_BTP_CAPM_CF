@@ -27,8 +27,27 @@ annotate service.SalesOrders with @(
             ID : 'GeneratedFacet1',
             Label : 'General Information',
             Target : '@UI.FieldGroup#GeneratedGroup',
+        },{
+            $Type : 'UI.ReferenceFacet', 
+            Label : 'Tech Information',
+            Target : '@UI.FieldGroup#Techdetails',
         },
     ],
+    UI.HeaderInfo: {
+        TypeName : 'Item',
+        TypeNamePlural: 'Items',
+        Title: {
+            $Type: 'UI.DataField',
+            Value: soNumber,
+            Label: 'SO Number'
+        },
+        Description: {
+            $Type: 'UI.DataField',
+            Value: customername,
+            Label: 'Name'
+        }
+    },
+    UI.SelectionFields: [soNumber],
     UI.LineItem : [
         {
             $Type : 'UI.DataField',
