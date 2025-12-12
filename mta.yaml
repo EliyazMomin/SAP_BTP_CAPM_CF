@@ -1,147 +1,167 @@
 _schema-version: 3.3.0
 ID: SAP_BTP_CAPM_CF
+description: A simple CAP project.
 version: 1.0.0
-description: "A simple CAP project."
+modules:
+- name: SAP_BTP_CAPM_CF-srv
+  type: nodejs
+  path: gen/srv
+  requires:
+  - name: SAP_BTP_CAPM_CF-auth
+  - name: SAP_BTP_CAPM_CF-db
+  - name: SAP_BTP_CAPM_CF-postgres
+  - name: SAP_BTP_CAPM_CF-messaging
+  - name: SAP_BTP_CAPM_CF-destination
+  - name: SAP_BTP_CAPM_CF-logging
+  provides:
+  - name: srv-api
+    properties:
+      srv-url: ${default-url}
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+  build-parameters:
+    builder: npm-ci
+- name: SAP_BTP_CAPM_CF-db-deployer
+  type: hdb
+  path: gen/db
+  requires:
+  - name: SAP_BTP_CAPM_CF-db
+  parameters:
+    buildpack: nodejs_buildpack
+- name: SAP_BTP_CAPM_CF-postgres-deployer
+  type: nodejs
+  path: gen/pg
+  requires:
+  - name: SAP_BTP_CAPM_CF-postgres
+  parameters:
+    buildpack: nodejs_buildpack
+    no-route: true
+    no-start: true
+    tasks:
+    - command: npm start
+      name: deploy-to-postgresql
+- name: SAP_BTP_CAPM_CF
+  type: approuter.nodejs
+  path: app/router
+  requires:
+  - name: srv-api
+    group: destinations
+    properties:
+      forwardAuthToken: true
+      name: srv-api
+      url: ~{srv-url}
+  - name: SAP_BTP_CAPM_CF-auth
+  - name: SAP_BTP_CAPM_CF-destination
+  - name: SAP_BTP_CAPM_CF-html5-runtime
+  - name: SAP_BTP_CAPM_CF-logging
+  provides:
+  - name: app-api
+    properties:
+      app-protocol: ${protocol}
+      app-uri: ${default-uri}
+  parameters:
+    disk-quota: 256M
+    keep-existing-routes: true
+    memory: 256M
+- name: SAP_BTP_CAPM_CF-app-deployer
+  type: com.sap.application.content
+  path: gen
+  requires:
+  - name: SAP_BTP_CAPM_CF-auth
+  - name: srv-api
+  - name: SAP_BTP_CAPM_CF-html5-repo-host
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+      content-target: true
+  build-parameters:
+    build-result: app/
+    requires:
+    - artifacts:
+      - comsapfiorioneapp.zip
+      name: comsapfiorioneapp
+      target-path: app/
+- name: comsapfiorioneapp
+  type: html5
+  path: app/fiorioneapp
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
+resources:
+- name: SAP_BTP_CAPM_CF-auth
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      oauth2-configuration:
+        redirect-uris:
+        - https://*~{app-api/app-uri}/**
+      tenant-mode: dedicated
+      xsappname: SAP_BTP_CAPM_CF-${org}-${space}
+    path: ./xs-security.json
+    service: xsuaa
+    service-plan: application
+  processed-after:
+  - SAP_BTP_CAPM_CF-messaging
+  requires:
+  - name: app-api
+- name: SAP_BTP_CAPM_CF-db
+  type: com.sap.xs.hdi-container
+  parameters:
+    service: hana
+    service-plan: hdi-shared
+- name: SAP_BTP_CAPM_CF-postgres
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: postgresql-db
+    service-plan: development
+- name: SAP_BTP_CAPM_CF-messaging
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./event-mesh.json
+    service: enterprise-messaging
+    service-plan: default
+- name: SAP_BTP_CAPM_CF-destination
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: false
+      init_data:
+        instance:
+          destinations:
+          - Authentication: NoAuthentication
+            Name: ui5
+            ProxyType: Internet
+            Type: HTTP
+            URL: https://ui5.sap.com
+          existing_destinations_policy: update
+    service: destination
+    service-plan: lite
+- name: SAP_BTP_CAPM_CF-html5-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+- name: SAP_BTP_CAPM_CF-html5-runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: SAP_BTP_CAPM_CF-logging
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: application-logs
+    service-plan: standard
 parameters:
-  enable-parallel-deployments: true
   deploy_mode: html5-repo
+  enable-parallel-deployments: true
 build-parameters:
   before-all:
-    - builder: custom
-      commands:
-        - npm ci
-        - npx cds build --production
-modules:
-  - name: SAP_BTP_CAPM_CF-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      instances: 1
-      buildpack: nodejs_buildpack
-    build-parameters:
-      builder: npm-ci
-    provides:
-      - name: srv-api # required by consumers of CAP services (e.g. approuter)
-        properties:
-          srv-url: ${default-url}
-    requires:
-      - name: SAP_BTP_CAPM_CF-auth
-      - name: SAP_BTP_CAPM_CF-db
-      - name: SAP_BTP_CAPM_CF-postgres
-      - name: SAP_BTP_CAPM_CF-messaging
-      - name: SAP_BTP_CAPM_CF-destination
-      - name: SAP_BTP_CAPM_CF-logging
-
-  - name: SAP_BTP_CAPM_CF-db-deployer
-    type: hdb
-    path: gen/db
-    parameters:
-      buildpack: nodejs_buildpack
-    requires:
-      - name: SAP_BTP_CAPM_CF-db
-
-  - name: SAP_BTP_CAPM_CF-postgres-deployer
-    type: nodejs
-    path: gen/pg
-    parameters:
-      buildpack: nodejs_buildpack
-      no-route: true
-      no-start: true
-      tasks:
-        - name: deploy-to-postgresql
-          command: npm start
-    requires:
-      - name: SAP_BTP_CAPM_CF-postgres
-  - name: SAP_BTP_CAPM_CF
-    type: approuter.nodejs
-    path: app/router
-    parameters:
-      keep-existing-routes: true
-      disk-quota: 256M
-      memory: 256M
-    requires:
-      - name: srv-api
-        group: destinations
-        properties:
-          name: srv-api # must be used in xs-app.json as well
-          url: ~{srv-url}
-          forwardAuthToken: true
-      - name: SAP_BTP_CAPM_CF-auth
-      - name: SAP_BTP_CAPM_CF-destination
-      - name: SAP_BTP_CAPM_CF-html5-runtime
-      - name: SAP_BTP_CAPM_CF-logging
-    provides:
-      - name: app-api
-        properties:
-          app-protocol: ${protocol}
-          app-uri: ${default-uri}
-
-  - name: SAP_BTP_CAPM_CF-app-deployer
-    type: com.sap.application.content
-    path: gen
-    requires:
-      - name: SAP_BTP_CAPM_CF-auth
-      - name: srv-api
-      - name: SAP_BTP_CAPM_CF-html5-repo-host
-        parameters:
-          content-target: true
-          config:
-            HTML5Runtime_enabled: true
-    build-parameters:
-      build-result: app/
-      requires:
-
-resources:
-  - name: SAP_BTP_CAPM_CF-auth
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: xsuaa
-      service-plan: application
-      path: ./xs-security.json
-      config:
-        xsappname: SAP_BTP_CAPM_CF-${org}-${space}
-        tenant-mode: dedicated
-        oauth2-configuration:
-          redirect-uris:
-            - https://*~{app-api/app-uri}/**
-    requires:
-      - name: app-api
-    processed-after:
-      - SAP_BTP_CAPM_CF-messaging
-  - name: SAP_BTP_CAPM_CF-db
-    type: com.sap.xs.hdi-container
-    parameters:
-      service: hana
-      service-plan: hdi-shared
-  - name: SAP_BTP_CAPM_CF-postgres
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: postgresql-db
-      service-plan: development
-  - name: SAP_BTP_CAPM_CF-messaging
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: enterprise-messaging
-      service-plan: default
-      path: ./event-mesh.json
-  - name: SAP_BTP_CAPM_CF-destination
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: destination
-      service-plan: lite
-
-  - name: SAP_BTP_CAPM_CF-html5-repo-host
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-host
-  - name: SAP_BTP_CAPM_CF-html5-runtime
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: html5-apps-repo
-      service-plan: app-runtime
-  - name: SAP_BTP_CAPM_CF-logging
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: application-logs
-      service-plan: standard
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
